@@ -58,6 +58,22 @@ void printPostorder(const pNode & node) {
     }
 }
 
+void printInorder(const pNode & node) {
+  if (node != nullptr) {
+    printInorder(node->left);
+    std::cout << node->val << " ";
+    printInorder(node->right);
+  }
+}
+
+void printPreorder(const pNode & node) {
+  if (node != nullptr) {
+    std::cout << node->val << " ";
+    printPreorder(node->left);
+    printPreorder(node->right);
+  }
+}
+
 void printBFS(const pNode & root) {
     std::queue<pNode> qu;
     qu.push(root);
@@ -102,14 +118,38 @@ class solution {
             if (first->right != nullptr)
                 first = first->right;
         }
-        std::cout << first->val << " ";
-        pNode next = postorderNext(root, first);
-        while (next != nullptr) {
-            std::cout << next->val << " ";
-            first = next;
-            next = postorderNext(root, first);
-        }
+        // std::cout << first->val << " ";
+        // pNode next = postorderNext(root, first);
+        // while (next != nullptr) {
+        //     std::cout << next->val << " ";
+        //     first = next;
+        //     next = postorderNext(root, first);
+        // }
+	pNode curr = first;
+	while (curr != nullptr) {
+	  std::cout << curr->val << " ";
+	  curr = postorderNext(root, curr);
+	}
     }
+
+  void inorderTraverse(const pNode & root) {
+    pNode leftmost = root;
+    while (leftmost->left != nullptr)
+      leftmost = leftmost->left;
+    pNode curr = leftmost;
+    while (curr != nullptr) {
+      std::cout << curr->val << " ";
+      curr = inorderNext(root, curr);
+    }
+  }
+
+  void preorderTraverse(const pNode & root) {
+    pNode curr = root;
+    while (curr != nullptr) {
+      std::cout << curr->val << " ";
+      curr = preorderNext(root, curr);
+    }
+  }
 
   private:
     pNode postorderNext(const pNode & root, const pNode & curr) {
@@ -140,6 +180,67 @@ class solution {
         }
         return next;
     }
+
+  pNode inorderNext(const pNode & root, const pNode & curr) {
+    pNode next = nullptr;
+    if (curr->right != nullptr) {
+      next = curr->right;
+      while (next->left != nullptr)
+	next = next->left;
+    }
+    else {
+      pNode parent = getParent(root, curr);
+      if (parent != nullptr) {
+	if (curr == parent->left)
+	  next = parent;
+	else {
+	  pNode grandparent = getParent(root, parent);
+	  while (grandparent != nullptr && parent != grandparent->left) {
+	    parent = grandparent;
+	    grandparent = getParent(root, parent);
+	  }
+	  next = grandparent;
+	}
+      }
+    }
+    return next;
+  }
+
+  pNode preorderNext(const pNode & root, const pNode & curr) {
+    pNode next = nullptr;
+    if (curr->left != nullptr)
+      next = curr->left;
+    else if (curr->right != nullptr)
+      next = curr->right;
+    else {
+      pNode parent = getParent(root, curr);
+      if (parent != nullptr) {
+	if (curr == parent->left) {
+	  if (parent->right != nullptr)
+	    next = parent->right;
+	  else {
+	    pNode grandparent = getParent(root, parent);
+	    while (grandparent != nullptr && parent != nullptr && parent->right == nullptr && parent == grandparent->left) {
+	      parent = grandparent;
+	      grandparent = getParent(root, parent);
+	    }
+	    if (grandparent != nullptr && parent != nullptr && parent == grandparent->left)
+	      next = parent->right;
+	  }
+	}
+	else {
+	  pNode grandparent = getParent(root, parent);
+	  while (grandparent != nullptr && parent == grandparent->right) {
+	    parent = grandparent;
+	    grandparent = getParent(root, parent);
+	  }
+	  if (grandparent != nullptr)
+	    next = grandparent->right;
+	}
+      }
+    }
+    return next;
+  }
 };
 
 
@@ -148,8 +249,10 @@ int main() {
     pNode root = buildTree(nums);
     root->left->left->right = std::make_shared<TreeNode>(0);
     root->right->right->left = std::make_shared<TreeNode>(8);
+    root->right->right->left->left = std::make_shared<TreeNode>(9);
     printBFS(root);
-    
+
+    std::cout << "Postorder traversal:\n";
     std::cout << "Recursive:\n";
     printPostorder(root);
     std::cout << std::endl;
@@ -157,5 +260,21 @@ int main() {
     solution soln;
     std::cout << "Iterative:\n";
     soln.postorderTraverse(root);
+    std::cout << std::endl;
+
+    std::cout << "\nInorder traversal:\n";
+    std::cout << "Recursive:\n";
+    printInorder(root);
+    std::cout << std::endl;
+    std::cout << "Iterative:\n";
+    soln.inorderTraverse(root);
+    std::cout << std::endl;
+
+    std::cout << "\nPreorder traversal:\n";
+    std::cout << "Recursive:\n";
+    printPreorder(root);
+    std::cout << std::endl;
+    std::cout << "Iterative:\n";
+    soln.preorderTraverse(root);
     std::cout << std::endl;
 }
